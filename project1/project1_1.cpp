@@ -7,8 +7,8 @@ using namespace std;
 const int ROW = 3;
 const int COL = 3;
 
-void mulMat(double mat1[][COL], double mat2[][COL]) {
-	double result[ROW][COL];
+void mulMat(double mat1[][COL], double mat2[][COL], double result[ROW][COL]) {
+	//double result[ROW][COL];
 
 	for (int i = 0; i < ROW; i++) {
 		for (int j = 0; j < COL; j++) {
@@ -17,6 +17,16 @@ void mulMat(double mat1[][COL], double mat2[][COL]) {
 			for (int k = 0; k < ROW; k++) {
 				result[i][j] += mat1[i][k] * mat2[k][j];
 			}
+            
+		}
+
+	}
+}
+
+void printResult(double result[ROW][COL]) {
+	for (int i = 0; i < ROW; i++) {
+		for (int j = 0; j < COL; j++) {
+
 
             if (result[i][j] > 0) cout << " ";
 			cout << result[i][j] << " ";
@@ -41,9 +51,13 @@ int main(void) {
         {156.800,   13.44,  67.8},
 	};
 
+	double result[ROW][COL];
+
 	chrono::steady_clock::time_point begin = chrono::steady_clock::now();
 
-	mulMat(matrix_x, matrix_y);
+	mulMat(matrix_x, matrix_y, result);
+
+	printResult(result);
 
 	chrono::steady_clock::time_point end = chrono::steady_clock::now();
 
