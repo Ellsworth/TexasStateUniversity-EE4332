@@ -54,7 +54,7 @@ int main() {
 
 	srand (static_cast <unsigned> (time(0)));
 
-	freopen("output.txt","w",stdout);
+	freopen("project1_2.txt","w",stdout);
 
     vector<double> result(ROW * COL);
     vector<double> matrix_x(ROW * COL);
