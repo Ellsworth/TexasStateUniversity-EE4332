@@ -56,16 +56,25 @@ int main() {
         156.800,   13.44,  67.8,
 	};
 
-	chrono::steady_clock::time_point begin = chrono::steady_clock::now();
+	printResult(matrix_x);
+	cout << endl;
+	printResult(matrix_y);
+	cout << endl;
+
+	chrono::steady_clock::time_point matrix_begin = chrono::steady_clock::now();
 
 	mulMat(matrix_x, matrix_y, result);
 
-	chrono::steady_clock::time_point end = chrono::steady_clock::now();
+	chrono::steady_clock::time_point matrix_end = chrono::steady_clock::now();
 
     printResult(result);
+	cout << endl;
 
-	cout << "Time difference = " << chrono::duration_cast<std::chrono::microseconds> (end - begin).count() << "[µs]" << std::endl;
-    cout << "Time difference = " << chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+	chrono::steady_clock::time_point end = chrono::steady_clock::now();
+
+	cout << "Total Program Runtime: " << chrono::duration_cast<std::chrono::microseconds> (end - begin).count() << "[µs]" << std::endl;	
+	cout << "Matrix Multiplication: " << chrono::duration_cast<std::chrono::microseconds> (matrix_end - matrix_begin).count() << "[µs]" << std::endl;
+    //cout << "Time difference = " << chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
 
 
 }
