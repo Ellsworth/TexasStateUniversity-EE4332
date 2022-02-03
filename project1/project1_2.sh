@@ -5,6 +5,9 @@
 #SBATCH -t 00:00:10    
 #SBATCH -J hpc-example-2-wqi7
 
+module load gcc
+module list
+
 g++ -v
 
 cd /home/wqi7/TexasStateUniversity-EE4332/project1 
