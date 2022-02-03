@@ -37,6 +37,10 @@ void printResult(vector<double> result) {
 }
 
 int main() {
+	
+	chrono::steady_clock::time_point begin = chrono::steady_clock::now();
+
+	freopen("project1_1.txt","w",stdout);
 
     vector<double> result(ROW * COL);
 
