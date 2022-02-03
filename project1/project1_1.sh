@@ -9,6 +9,6 @@ g++ -v
 
 cd /home/wqi7/TexasStateUniversity-EE4332/project1	 
 
-g++ test.cpp
+g++ project1_1.cpp -o project1_1
 
-./a.out
+./project1_1
