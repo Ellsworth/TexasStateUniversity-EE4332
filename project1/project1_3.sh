@@ -14,4 +14,4 @@ cd /home/wqi7/TexasStateUniversity-EE4332/project1
 
 g++ project1_3.cpp -o project1_3
 
-./project1_2
+./project1_3
