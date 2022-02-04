@@ -5,7 +5,7 @@
 ** Due: 2/7/22
 **
 ** Objective:
-** Multiply two predefined matrices.
+** Multiply two random matrices.
 **
 *******************************************************************************/
 
