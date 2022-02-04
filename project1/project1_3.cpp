@@ -113,7 +113,7 @@ int main() {
 	srand (time(NULL));
 
 	// Pipe stdout to output file.
-	freopen("project1_2.txt","w",stdout);
+	freopen("project1_3.txt","w",stdout);
 
 	// Create and pre-allocate vector for the result.
     vector<double> result(ROW * COL);
