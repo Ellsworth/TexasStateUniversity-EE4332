@@ -29,3 +29,5 @@ g++ project1_2.cpp -o project1_2
 ./project1_2
 
 rm project1_2
+
+echo "Finished at `date`"
