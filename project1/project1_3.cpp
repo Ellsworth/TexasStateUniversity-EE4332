@@ -18,8 +18,7 @@
 using namespace std;
 
 // The size of the two matrices
-//const unsigned int ROW = 7000, COL = 7000;
-const unsigned int ROW = 10, COL = 10;
+const unsigned int ROW = 7000, COL = 7000;
 
 // The value of the random numbers in the matrices.
 const double RNG_MIN = -1999.999, RNG_MAX = 1999.999;
