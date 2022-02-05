@@ -3,7 +3,7 @@
 #SBATCH -p shared 
 #SBATCH -n 1  
 #SBATCH -t 00:00:10    
-#SBATCH -J hpc-example-1-wqi7
+#SBATCH -J hpc-project1_1
 
 module load gcc
 module list
