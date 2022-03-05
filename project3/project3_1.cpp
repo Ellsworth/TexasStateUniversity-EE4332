@@ -6,10 +6,10 @@
 
 using namespace std;
 
-const unsigned int SIZE = 4 + 1;
+const unsigned int SIZE = 1000;
 const float STEADY_STATE = 0.001;
 
-const short int OFFSET = 100 / (SIZE - 1);
+const float OFFSET = 100 / ((float)SIZE - 1);
 const int TOTAL_ELEMENTS = (SIZE - 2) * (SIZE - 2);
 
 
@@ -91,7 +91,7 @@ int countSteadyState(vector<float>& matrix1, vector<float>& matrix2) {
         }
     }
 
-    cout << "Steady state: " << totalSteadyState << endl;
+    //cout << "Steady state: " << totalSteadyState << endl;
 
     return totalSteadyState;
 
