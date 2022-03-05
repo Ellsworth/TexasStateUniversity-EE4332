@@ -20,12 +20,8 @@ int countSteadyState(vector<float>& matrix1, vector<float>& matrix2);
 
 int main() {
 
-    
-
     vector<float> plate(SIZE * SIZE);
     vector<float> prev(SIZE * SIZE);
-
-    //plate[(4 * SIZE) + 0] = 1;
 
     cout << "Offset is " << OFFSET << endl;
     cout << "Total elements of the plate is " << TOTAL_ELEMENTS << endl;
@@ -90,8 +86,6 @@ int countSteadyState(vector<float>& matrix1, vector<float>& matrix2) {
                 totalSteadyState++;
         }
     }
-
-    //cout << "Steady state: " << totalSteadyState << endl;
 
     return totalSteadyState;
 
