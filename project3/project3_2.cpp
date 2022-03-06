@@ -67,8 +67,9 @@ int main(int argc, char *argv[]) {
 		offset = 0;
 		tag = MASTER_ID;
 
-
-        MPI_Send(&plate[(2 - 1) * SIZE], (3 * SIZE), MPI_FLOAT, 1, 0, MPI_COMM_WORLD);
+        //MPI_Send(&plate[(2 - 1) * SIZE], (3 * SIZE), MPI_FLOAT, 1, 0, MPI_COMM_WORLD);
+        MPI_Send(&plate[(2 - 1) * SIZE], (3 * SIZE), MPI_FLOAT, 1, MASTER_ID, MPI_COMM_WORLD);
+        
         //MPI_Recv(&plate[(2) * SIZE], (SIZE), MPI_FLOAT, 1, WORKER_ID, MPI_COMM_WORLD, &status);
 
         //cout << "master:" << endl;
@@ -79,6 +80,7 @@ int main(int argc, char *argv[]) {
     }
     if (rank > 0) {
 
+        //MPI_Recv(&plate[(2 - 1) * SIZE], (3 * SIZE), MPI_FLOAT, 1, 0, MPI_COMM_WORLD, &status);
         MPI_Recv(&plate[(2 - 1) * SIZE], (3 * SIZE), MPI_FLOAT, 0, MASTER_ID, MPI_COMM_WORLD, &status);
         averageRow(plate, 2);
 
