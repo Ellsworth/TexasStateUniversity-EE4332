@@ -11,7 +11,7 @@ using namespace std;
 // Global consts.
 
 // Total size for each axis of the matrix. eg. 1000 x 1000.
-const unsigned int SIZE = 10;
+const unsigned int SIZE = 7000;
 
 // Difference from the last run to consider an element in steady state.
 const float STEADY_STATE = 0.0001;
@@ -39,7 +39,7 @@ int countSteadyState(vector<float>& matrix1, vector<float>& matrix2, int rowstar
 int main(int argc, char *argv[]) {
 
     // Pipe stdout to output file.
-    freopen("project3_2.txt","w", stdout);
+    //freopen("project3_2.txt","w", stdout);
 
 
 	int rank, numProcess, rc, tag, offset, rows;
