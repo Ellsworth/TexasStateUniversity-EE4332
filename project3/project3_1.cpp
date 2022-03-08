@@ -136,7 +136,7 @@ int countSteadyState(vector<float>& matrix1, vector<float>& matrix2) {
 
     for (int row = 1; row < SIZE - 1; row++) {
         for (int col = 1; col < SIZE - 1; col++) {
-            if ( abs(matrix1.at((row * SIZE) + col) - matrix1.at((row * SIZE) + col) < STEADY_STATE ) ) totalSteadyState++;
+            if ( abs(matrix1.at((row * SIZE) + col) - matrix2.at((row * SIZE) + col) < STEADY_STATE ) ) totalSteadyState++;
         }
     }
 

@@ -11,10 +11,10 @@ using namespace std;
 // Global consts.
 
 // Total size for each axis of the matrix. eg. 1000 x 1000.
-const unsigned int SIZE = 7000;
+const unsigned int SIZE = 10;
 
 // Difference from the last run to consider an element in steady state.
-const float STEADY_STATE = 0.001;
+const float STEADY_STATE = 0.0001;
 
 // The OFFSET of each value of the head applies at a given element.
 const float OFFSET = 100 / ((float)SIZE - 1);
@@ -37,6 +37,10 @@ int countSteadyState(vector<float>& matrix1, vector<float>& matrix2, int rowstar
 
 
 int main(int argc, char *argv[]) {
+
+    // Pipe stdout to output file.
+    freopen("project3_2.txt","w", stdout);
+
 
 	int rank, numProcess, rc, tag, offset, rows;
     int startrow, endrow;
@@ -198,12 +202,18 @@ void printMatrix(vector<float> matrix) {
 
 void setupMatrixBorder(vector<float>& matrix) {
 
+    fill(matrix.begin(), matrix.end(), 0.5F);
+
+    for (int i = 0; i < SIZE; i++) {
+        matrix.at(i) = 0;
+        matrix.at(SIZE - 1 + (SIZE * i)) = 0;
+    }
+
     for (int row = SIZE; row > 0; row--) {
 
         matrix[row * SIZE] = OFFSET * row;
         matrix[(SIZE * (SIZE - 1)) + row] = 100 - (OFFSET * row);
     }
-    
 }
 
 /***********************************************************
@@ -244,7 +254,7 @@ int countSteadyState(vector<float>& matrix1, vector<float>& matrix2, int rowstar
     for (int row = rowstart; row < rowend + 1; row++) {
         for (int col = 1; col < SIZE - 1; col++) {
 
-            if ( abs(matrix1.at((row * SIZE) + col) - matrix1.at((row * SIZE) + col) < STEADY_STATE ) ) totalSteadyState++;
+            if ( abs(matrix1.at((row * SIZE) + col) - matrix2.at((row * SIZE) + col) < STEADY_STATE ) ) totalSteadyState++;
         }
     }
 
