@@ -9,7 +9,7 @@ using namespace std;
 // Global consts.
 
 // Total size for each axis of the matrix. eg. 1000 x 1000.
-const unsigned int SIZE = 10;
+const unsigned int SIZE = 1000;
 
 // Difference from the last run to consider an element in steady state.
 const float STEADY_STATE = 0.001;
