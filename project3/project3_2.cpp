@@ -10,11 +10,11 @@ using namespace std;
 
 // Global consts.
 
-// Total size for each axis of the matrix. eg. 1000 x 1000.
-const unsigned int SIZE = 7000;
+// Total size for each axis of the matrix. eg. 7000 x 7000.
+const unsigned int SIZE = 5;
 
 // Difference from the last run to consider an element in steady state.
-const float STEADY_STATE = 0.0001;
+const float STEADY_STATE = 0.1;
 
 // The OFFSET of each value of the head applies at a given element.
 const float OFFSET = 100 / ((float)SIZE - 1);
@@ -54,8 +54,7 @@ int main(int argc, char *argv[]) {
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &numProcess);
 
-    int steadystate, sum_steadystate;
-
+    int steadystate = 0, sum_steadystate = 0;
     //cout << "Rank: " << rank << endl;
 
     // Define vectors
@@ -76,6 +75,8 @@ int main(int argc, char *argv[]) {
 
         // Do while the number of elements in steady states does not equal the
         //  total number of elements.
+
+
         do {
             
             // Reset steady state count.
@@ -84,88 +85,82 @@ int main(int argc, char *argv[]) {
             // Set the prev array to the current plate.
             prev = plate;
 
-            // Send the workers the data.
             for (int process = 1; process < numProcess; process++) {
 
-                // Calculate exactly what rows each workers needs.
-                startrow = (process - 1) * rowsPerProcess + 1;
-                endrow = (process) * rowsPerProcess;
-                
-                // Make sure the last process gets exactly the end of the array.
-                if (process == numProcess - 1) endrow = SIZE - 2;
+
+            // Calculate exactly what rows each workers needs.
+            startrow = (process - 1) * rowsPerProcess + 1;
+            endrow = (process) * rowsPerProcess;
+            
+            // Make sure the last process gets exactly the end of the array.
+            if (process == numProcess - 1) endrow = SIZE - 2;
 
                 // Send the data.
-                MPI_Send(&startrow, 1, MPI_INT, process, MASTER_ID, 
-                    MPI_COMM_WORLD);
-                MPI_Send(&endrow, 1, MPI_INT, process, MASTER_ID, 
-                    MPI_COMM_WORLD);
-
-                MPI_Send(&prev[startrow * SIZE], (SIZE * (endrow - startrow)), 
-                    MPI_FLOAT, process, MASTER_ID, MPI_COMM_WORLD);
-
-
-                MPI_Send(&plate[(startrow - 1) * SIZE], (SIZE * (endrow - startrow + 2)), 
-                    MPI_FLOAT, process, MASTER_ID, MPI_COMM_WORLD);
+                cout << "Sending startrow " << startrow << " to " << rank << endl;
+                MPI_Send(&startrow, 1, MPI_INT, process, MASTER_ID, MPI_COMM_WORLD);
+                cout << "Sending endrow " << endrow << " to " << process << endl;
+                MPI_Send(&endrow, 1, MPI_INT, process, MASTER_ID, MPI_COMM_WORLD);
+                
+                cout << "Sending array to " << rank << endl;
+                MPI_Send(&plate[(startrow - 1) * SIZE], (SIZE * (endrow - startrow + 2)), MPI_FLOAT, process, MASTER_ID, MPI_COMM_WORLD);
+                cout << "Sending prev to " << rank << endl;
+                MPI_Send(&prev[(startrow - 1) * SIZE], (SIZE * (endrow - startrow + 2)), MPI_FLOAT, process, MASTER_ID, MPI_COMM_WORLD);
 
 
-            }
-
-            // Receive the data from the workers.
-            for (int process = 1; process < numProcess; process++) {
-
-                // Receive the only the workers assigned rows.
-                MPI_Recv(&plate[(startrow) * SIZE], 
-                    (SIZE * (endrow - startrow + 1)), MPI_FLOAT, process, 
-                    WORKER_ID, MPI_COMM_WORLD, &status);
-
-                // Receive how many of their elements are in steady state and 
-                //  add the value to the total.
-                MPI_Recv(&steadystate, 1, MPI_INT, process, WORKER_ID,
-                     MPI_COMM_WORLD, &status);
-                sum_steadystate += steadystate;
+                MPI_Recv(&plate[(startrow) * SIZE], (SIZE * (endrow - startrow + 1)), MPI_FLOAT, process, WORKER_ID, MPI_COMM_WORLD, &status);
+                cout << rank << ": rx results from " << process << endl;                
 
             }
 
-        } while(sum_steadystate < TOTAL_ELEMENTS - 1);
+             
+
+            cout << "Complete: " << sum_steadystate << "/" << TOTAL_ELEMENTS << endl;
+
+        } while(false);
+
+        // Works with 2 nodes. Check when using 3.
 
         // When we are no longer ins steady state, print the array.
-        printMatrix(plate);
-        cout << endl;
+        //printMatrix(plate);
+        //cout << endl;
 
     }
 
     // Worker code.
     if (rank > 0) {
 
+        cout << "Worker " << rank << " reporting!" << endl;
+
         // Receive the start and end rows we are responsible for.
-        MPI_Recv(&startrow, 1, MPI_INT, 0, MASTER_ID, MPI_COMM_WORLD, &status);
+        
+        MPI_Recv(&startrow, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
+        cout << rank << ": RX startrow " << startrow << endl;
         MPI_Recv(&endrow, 1, MPI_INT, 0, MASTER_ID, MPI_COMM_WORLD, &status);
-
-        // Receive the previous and current plate.
-        MPI_Recv(&prev[startrow * SIZE], (SIZE * (endrow - startrow)), 
-            MPI_FLOAT, 0, MASTER_ID, MPI_COMM_WORLD, &status);
-
-        MPI_Recv(&plate[(startrow - 1) * SIZE], 
-            (SIZE * (endrow - startrow + 2)), MPI_FLOAT, 0, MASTER_ID, MPI_COMM_WORLD, &status);
+        cout << rank << ": RX endrow " << endrow << endl;
         
-        // Perform the Jacobi iteration.
+
+        MPI_Recv(&plate[(startrow - 1) * SIZE], (SIZE * (endrow - startrow + 2)), MPI_FLOAT, 0, MASTER_ID, MPI_COMM_WORLD, &status);
+        cout << rank << ": RX array" << endl;
+
+
+        MPI_Recv(&prev[(startrow - 1) * SIZE], (SIZE * (endrow - startrow + 2)), MPI_FLOAT, 0, MASTER_ID, MPI_COMM_WORLD, &status);
+        cout << rank << ": RX plate" << endl;
+
         averageRow(plate, startrow, endrow);
-        
+
         // Send our results back to the the master.
-        MPI_Send(&plate[startrow * SIZE], (SIZE * (endrow - startrow + 1)), 
-            MPI_FLOAT, 0, WORKER_ID, MPI_COMM_WORLD);
-
-        // Calculate how many of our elements didn't change by much.
-        steadystate = countSteadyState(plate, prev, startrow, endrow);
-
-        // Send the steady state count back home.
-        MPI_Send(&steadystate, 1, MPI_INT, 0, WORKER_ID, MPI_COMM_WORLD);
+        MPI_Send(&plate[startrow * SIZE], (SIZE * (endrow - startrow + 1)), MPI_FLOAT, 0, WORKER_ID, MPI_COMM_WORLD);
+        cout << rank << ": sent results back!" << endl; 
+        
     }
 
     // Cleanly terminate all of the workers and the message passing interface.
     MPI_Finalize();
 
     if (rank == 0) {
+
+    printMatrix(plate);
+
 
     // Stop the clock and print our time.
     chrono::steady_clock::time_point end = chrono::steady_clock::now();
