@@ -78,9 +78,15 @@ int main(int argc, char *argv[]) {
     vector<float> prev(SIZE * SIZE);
 
     // Calculate how many rows each process is responsible for. 
-    const int rowsPerProcess = (SIZE - 2) / (numProcess - 1);
+    const int rowsPerProcess = SIZE / numProcess;
 
-    cout << "Hello from task " << rank << endl;
+    
+    startrow = (rank * rowsPerProcess);
+    endrow = (startrow + rowsPerProcess);
+    if (rank == numProcess - 1) endrow = SIZE - 1;
+
+    cout << rank << ": Rows " << startrow << "-" << endrow << endl;
+    
 
 
     /**
@@ -89,12 +95,28 @@ int main(int argc, char *argv[]) {
     if (rank == 0) {
 
         setupMatrixBorder(plate);
-        averageRow(plate, 1, 8);
+
+        MPI_Send(&plate[((SIZE * SIZE) / 2) - SIZE], ((SIZE * rowsPerProcess) + SIZE), MPI_FLOAT, 1, MASTER_ID, MPI_COMM_WORLD);
+
+        averageRow(plate, 1, (SIZE / 2));
+
+        MPI_Recv(&plate[((SIZE * SIZE) / 2)], ((SIZE * rowsPerProcess)), MPI_FLOAT, 1, WORKER_ID, MPI_COMM_WORLD, &status);
+        cout << "Rpp: " << rowsPerProcess << endl;
+
+        printMatrix(plate);
 
     }
 
     // Worker code.
     if (rank > 0) {
+
+        MPI_Recv(&plate[((SIZE * SIZE) / 2) - SIZE], ((SIZE * rowsPerProcess) + SIZE), MPI_FLOAT, 0, MASTER_ID, MPI_COMM_WORLD, &status);
+
+        averageRow(plate, SIZE / 2, SIZE - 2);
+
+        MPI_Send(&plate[((SIZE * SIZE) / 2)], ((SIZE * rowsPerProcess)), MPI_FLOAT, 0, WORKER_ID, MPI_COMM_WORLD);
+        
+        //printMatrix(plate);
     }
 
     // Cleanly terminate all of the workers and the message passing interface.
@@ -104,7 +126,7 @@ int main(int argc, char *argv[]) {
 
     if (rank == 0) {
 
-    printMatrix(plate);
+    //printMatrix(plate);
 
 
     // Stop the clock and print our time.
@@ -124,23 +146,23 @@ int main(int argc, char *argv[]) {
 
 void printMatrix(vector<float> matrix) {
 
-    ofstream fout;
-    fout.open("project4.txt");
+    //ofstream fout;
+    //fout.open("project4.txt");
 
 
     for (int row = 0; row < SIZE; row++) {
 
         for (int col = 0; col < SIZE; col++) {
-            fout << matrix[(row * SIZE) + col] << " ";
+            cout << matrix[(row * SIZE) + col] << " ";
         }
 
-        fout << endl;
+        cout << endl;
 
     }
 
     // Close the file when we are done. Not 100% required, but good form.
 
-    fout.close();
+    //fout.close();
 
 }
 
