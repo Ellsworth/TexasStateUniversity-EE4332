@@ -1,8 +1,8 @@
 /******************************************************************************
 ** Erich Scott Ellsworth, wqi7
-** EE4332 – MP3 Part 2
-** Filename: project3_2.cpp
-** Due: 3/11/22
+** EE4332 – MP4
+** Filename: project4.cpp
+** Due: 3/28/22
 **
 ** Objective:
 ** Perform the jacobi iteration on an array using OpenMPI.
@@ -24,7 +24,7 @@ using namespace std;
 // Global consts.
 
 // Total size for each axis of the matrix. eg. 7000 x 7000.
-const unsigned int SIZE = 10;
+const unsigned int SIZE = 7000;
 
 // Difference from the last run to consider an element in steady state.
 const float STEADY_STATE = 0.001;
@@ -56,12 +56,11 @@ int main(int argc, char *argv[]) {
 
 
 	int rank, numProcess, rc, tag, offset, rows;
-    int startrow, endrow, iterations = 0, isSteadyState = 0;
-	double t1,t2;
+    int startrow, endrow, iterations = 0;
+    int steadystate = 0, sum_steadystate = 0, isSteadyState = 0;
 
     // Start the clock.
     chrono::steady_clock::time_point begin = chrono::steady_clock::now();
-
 
     // Init OpenMPI
 	MPI_Status status;
@@ -70,9 +69,6 @@ int main(int argc, char *argv[]) {
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &numProcess);
 
-    int steadystate = 0, sum_steadystate = 0;
-    //cout << "Rank: " << rank << endl;
-
     // Define vectors
     vector<float> plate(SIZE * SIZE);
     vector<float> prev(SIZE * SIZE);
@@ -80,43 +76,91 @@ int main(int argc, char *argv[]) {
     // Calculate how many rows each process is responsible for. 
     const int rowsPerProcess = SIZE / numProcess;
 
-    
+    // Find the start and end rows;    
     startrow = (rank * rowsPerProcess);
     endrow = (startrow + rowsPerProcess);
     if (rank == numProcess - 1) endrow = SIZE - 1;
 
     cout << rank << ": Rows " << startrow << "-" << endrow << endl;
-    
-
 
     /**
      * Master process
      */
     if (rank == 0) {
 
-        setupMatrixBorder(plate);
+            // setup the plate.
+            setupMatrixBorder(plate);
 
-        MPI_Send(&plate[((SIZE * SIZE) / 2) - SIZE], ((SIZE * rowsPerProcess) + SIZE), MPI_FLOAT, 1, MASTER_ID, MPI_COMM_WORLD);
+            do {
+            
+            // for ever loop, iterate this by one.
+            iterations++;
 
-        averageRow(plate, 1, (SIZE / 2));
+            // Reset the steady state counter.
+            sum_steadystate = 0;
 
-        MPI_Recv(&plate[((SIZE * SIZE) / 2)], ((SIZE * rowsPerProcess)), MPI_FLOAT, 1, WORKER_ID, MPI_COMM_WORLD, &status);
-        cout << "Rpp: " << rowsPerProcess << endl;
+            // Send the plate.
+            MPI_Send(&plate[((SIZE * SIZE) / 2) - SIZE], ((SIZE * rowsPerProcess) + SIZE), MPI_FLOAT, 1, MASTER_ID, MPI_COMM_WORLD);
 
-        printMatrix(plate);
+            // Set the previous plate to the current.
+            prev = plate;
+
+            // Perform the calculation.
+            averageRow(plate, 1, (SIZE / 2));
+
+            // RX the worker's data.
+            MPI_Recv(&plate[((SIZE * SIZE) / 2)], ((SIZE * rowsPerProcess)), MPI_FLOAT, 1, WORKER_ID, MPI_COMM_WORLD, &status);
+            
+            // RX the # of steady state units in the worker's half.
+            MPI_Recv(&steadystate, 1, MPI_INT, 1, WORKER_ID, MPI_COMM_WORLD, &status);
+
+            // Add the worker and our steady state count to sum_steadystate.
+            sum_steadystate += steadystate;
+
+            sum_steadystate += countSteadyState(plate, prev, 1, (SIZE / 2) - 1);
+
+            // If we are in steady state, or past the max iterations, set the
+            //      isSteadyState flag to 1.
+            if (sum_steadystate > TOTAL_ELEMENTS - 1) isSteadyState = 1;
+            if (iterations > MAX_ITERATIONS - 1) isSteadyState = 1;
+
+            // Let the worker know to keep going or not.
+            MPI_Send(&isSteadyState, 1, MPI_INT, 1, MASTER_ID, MPI_COMM_WORLD);
+
+        } while (!isSteadyState);
 
     }
 
     // Worker code.
     if (rank > 0) {
 
+        while (!isSteadyState) {
+
+        // reset the counter
+        sum_steadystate = 0;
+
+        // RX the plate from master.
         MPI_Recv(&plate[((SIZE * SIZE) / 2) - SIZE], ((SIZE * rowsPerProcess) + SIZE), MPI_FLOAT, 0, MASTER_ID, MPI_COMM_WORLD, &status);
 
+        prev = plate;
+
+        // Perform the calculation.
         averageRow(plate, SIZE / 2, SIZE - 2);
 
+        // Count the number of our elements that are in steady state.
+        steadystate = countSteadyState(plate, prev, SIZE / 2, SIZE - 2);
+
+        // Send back the computed plate.
         MPI_Send(&plate[((SIZE * SIZE) / 2)], ((SIZE * rowsPerProcess)), MPI_FLOAT, 0, WORKER_ID, MPI_COMM_WORLD);
-        
-        //printMatrix(plate);
+
+        // Send the total elements in state state.
+        MPI_Send(&steadystate, 1, MPI_INT, 0, WORKER_ID, MPI_COMM_WORLD);
+
+        // RX if we need to keep going or not.
+        MPI_Recv(&isSteadyState, 1, MPI_INT, 0, MASTER_ID, MPI_COMM_WORLD, &status);
+
+        }
+
     }
 
     // Cleanly terminate all of the workers and the message passing interface.
@@ -126,8 +170,7 @@ int main(int argc, char *argv[]) {
 
     if (rank == 0) {
 
-    //printMatrix(plate);
-
+    printMatrix(plate);
 
     // Stop the clock and print our time.
     
@@ -146,23 +189,23 @@ int main(int argc, char *argv[]) {
 
 void printMatrix(vector<float> matrix) {
 
-    //ofstream fout;
-    //fout.open("project4.txt");
+    ofstream fout;
+    fout.open("project4.txt");
 
-
+    // Go thru each element and write to fout.
     for (int row = 0; row < SIZE; row++) {
 
         for (int col = 0; col < SIZE; col++) {
-            cout << matrix[(row * SIZE) + col] << " ";
+            fout << matrix[(row * SIZE) + col] << " ";
         }
 
-        cout << endl;
+        fout << endl;
 
     }
 
     // Close the file when we are done. Not 100% required, but good form.
 
-    //fout.close();
+    fout.close();
 
 }
 
@@ -180,18 +223,22 @@ void setupMatrixBorder(vector<float>& matrix) {
 
     #pragma omp parallel for private(i, row) shared(matrix)
 
+    // set the top and right sides to zero.
     for (i = 0; i < SIZE; i++) {
         matrix.at(i) = 0;
         matrix.at(SIZE - 1 + (SIZE * i)) = 0;
     }
 
+    // Setup the heat source.
     for (row = SIZE; row > 0; row--) {
 
         matrix[row * SIZE] = OFFSET * row;
         matrix[(SIZE * (SIZE - 1)) + row] = 100 - (OFFSET * row);
     }
 
-    #pragma omp barrier
+    #pragma omp barrier // prevent race condition.
+
+    return;
 }
 
 /***********************************************************
@@ -218,7 +265,9 @@ void averageRow(vector<float>& matrix, int rowstart, int rowend) {
         }
     }
 
-    #pragma omp barrier
+    #pragma omp barrier // prevent race condition.
+
+    return;
 }
 
 
@@ -240,13 +289,16 @@ int countSteadyState(vector<float>& matrix1, vector<float>& matrix2, int rowstar
 
     for (row = rowstart; row < rowend + 1; row++) {
         for (col = 1; col < SIZE - 1; col++) {
-
-            if ( abs(matrix1.at((row * SIZE) + col) - matrix2.at((row * SIZE) + col) < STEADY_STATE ) ) totalSteadyState++;
+            
+            // Is there at least a STEADY_STATE difference between the two?
+            if ( abs(matrix1.at((row * SIZE) + col) - matrix2.at((row * SIZE) + col) < STEADY_STATE ) ) {
+                totalSteadyState++;
+            }
         }
     }
 
-    return totalSteadyState;
+    #pragma omp barrier // prevent race condition.
 
-    #pragma omp barrier
+    return totalSteadyState;
 
 }
