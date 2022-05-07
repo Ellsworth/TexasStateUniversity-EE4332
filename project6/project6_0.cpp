@@ -17,15 +17,18 @@ void multiplyMatrix(float matrixA[SIZE][SIZE], float matrixB[SIZE][SIZE], float 
 
 int main() {
 
+    // Setup the matrix.
     float matrixA[SIZE][SIZE], matrixB[SIZE][SIZE], matrixResult[SIZE][SIZE];
 
+    // Fill the two matricies.
     fillMatrixWithRandom(matrixA);
     fillMatrixWithRandom(matrixB);
 
+    // Do the multiplication.
     multiplyMatrix(matrixA, matrixB, matrixResult);
 
+    // Print our result.
     printMatrix(matrixResult);
-    
 
 }
 
@@ -38,8 +41,13 @@ int main() {
 
 void fillMatrixWithRandom(float matrix[SIZE][SIZE]) {
     
+    // Setup the RNG engine, using real-ish random numbers.
     random_device rd;
+
+    // Default engine. Should be the hardware accelerated one, if it exists.
     default_random_engine eng(rd());
+
+    // Uniform random numbers. RNG_MIN and RNG_MAX are defined.
     uniform_real_distribution<> distr(RNG_MIN, RNG_MAX);
 
     for (int row = 0; row < SIZE; row++) {
