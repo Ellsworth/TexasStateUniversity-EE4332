@@ -8,26 +8,22 @@
 using namespace std;
 
 #define SIZE 5
-#define RNG_MIN -1999.999
-#define RNG_MAX 1999.999
+#define RNG_MIN -199.999
+#define RNG_MAX 199.999
 
-void fillMatrixWithRandom(float matrix[SIZE][SIZE]);
-void printMatrix(float matrix[SIZE][SIZE]);
-void multiplyMatrix(float matrixA[SIZE][SIZE], float matrixB[SIZE][SIZE], float matrixResult[SIZE][SIZE]);
+void fillMatrixWithRandom(vector<float> &matrix);
+void printMatrix(vector<float> matrix);
+void multiplyMatrix(vector<float> matrixA, vector<float> matrixB, vector<float> &matrixResult);
 
 int main() {
 
-    // Setup the matrix.
-    float matrixA[SIZE][SIZE], matrixB[SIZE][SIZE], matrixResult[SIZE][SIZE];
+    vector<float> matrixA(SIZE * SIZE), matrixB(SIZE * SIZE), matrixResult(SIZE * SIZE);
 
-    // Fill the two matricies.
     fillMatrixWithRandom(matrixA);
     fillMatrixWithRandom(matrixB);
 
-    // Do the multiplication.
     multiplyMatrix(matrixA, matrixB, matrixResult);
-
-    // Print our result.
+    
     printMatrix(matrixResult);
 
 }
@@ -39,7 +35,7 @@ int main() {
  * matrix - 2D matrix to fill.
 /***********************************************************/
 
-void fillMatrixWithRandom(float matrix[SIZE][SIZE]) {
+void fillMatrixWithRandom(vector<float> &matrix) {
     
     // Setup the RNG engine, using real-ish random numbers.
     random_device rd;
@@ -52,9 +48,11 @@ void fillMatrixWithRandom(float matrix[SIZE][SIZE]) {
 
     for (int row = 0; row < SIZE; row++) {
         for (int col = 0; col < SIZE; col++) {
-            matrix[row][col] = distr(eng);
+            matrix.at((row * SIZE) + col) = distr(eng);
         }
     }
+
+
 }
 
 /***********************************************************
@@ -63,11 +61,11 @@ void fillMatrixWithRandom(float matrix[SIZE][SIZE]) {
  * matrix: matrix to be printed.
 /***********************************************************/
 
-void printMatrix(float matrix[SIZE][SIZE]) {
+void printMatrix(vector<float> matrix) {
 
     for (int row = 0; row < SIZE; row++) {
         for (int col = 0; col < SIZE; col++) {
-            cout << matrix[row][col] << " ";
+            cout << matrix.at((row * SIZE) + col) << " ";
         }
         cout << endl;
     }
@@ -80,13 +78,13 @@ void printMatrix(float matrix[SIZE][SIZE]) {
  * matrixA & matrixB: 2D matrix to multiply.
  * matrixResult - The result.
 /***********************************************************/
-void multiplyMatrix(float matrixA[SIZE][SIZE], float matrixB[SIZE][SIZE], float matrixResult[SIZE][SIZE]) {
+void multiplyMatrix(vector<float> matrixA, vector<float> matrixB, vector<float> &matrixResult) {
 
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             for (int k = 0; k < SIZE; k++) {
 
-                matrixResult[i][j] += matrixA[i][k] * matrixB[k][j];
+                matrixResult.at((i * SIZE) + j) += matrixA.at((i * SIZE) + k) * matrixB.at((k * SIZE) + j);
 
             }
         }
